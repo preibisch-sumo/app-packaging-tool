@@ -41,21 +41,12 @@ class MainWindow(tk.Tk):
         self.create_button = tk.Button(self.main_frame, text="Create New App", command=self.create_new_app)
         self.create_button.grid(row=2, column=0)
 
-        # Add "Modify Existing App" button
-        self.modify_button = tk.Button(self.main_frame, text="Modify Existing App", command=self.modify_existing_app)
-        self.modify_button.grid(row=5, column=0)
-
-        # Add field for choosing existing app
-        self.existing_app_label = tk.Label(self.main_frame, text="Existing app folder")
-        self.existing_app_label.grid(row=6, column=0)
-        self.existing_app_entry = tk.Entry(self.main_frame)
-        self.existing_app_entry.grid(row=7, column=0)
 
         # Hide the create and modify app buttons and their associated input boxes
         self.set_app_controls_visibility('hidden')
 
     def set_app_controls_visibility(self, state):
-        controls = [self.create_button, self.modify_button, self.existing_app_label, self.existing_app_entry]
+        controls = [self.create_button]
         for control in controls:
             control.grid_remove() if state == 'hidden' else control.grid()
 
