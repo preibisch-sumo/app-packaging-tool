@@ -1,0 +1,50 @@
+# Parameters are user input when installing an app like “source category”.
+# A parameter can be optional or may require some random value at installation
+# time.
+#
+#  * componentType: Type of Config Driven Forms (CDF) component, which in turn will
+#    drive the UI/UX for user input. For example, CDF has a “scope” component which
+#    can render the screenshot below. There will be two component types
+#
+#    1. scope: This component type should drive the UI/UX to ask the user for a scope
+#       used by the App. This UI/UX would match what we currently have in v1 apps,
+#       where we ask the user to provide a Source Category or custom scope.
+#
+#    2. custom: The custom parameter type is to allow an app developer to ask the user
+#       for some other default input that may be used as a parameter within the queries.
+#       The parameter may be used as either a keyword in the scope or anywhere else
+#       with a query. The UI/UX for this type would be just the label and an input.
+#
+#  * tfVar: The variable name used in the “definition/variables.tf” file for the
+#    metadata field.
+#
+# For a custom CDF component, following fields are required, in addition to the 
+# “tfVar” field.
+#  * dataType: Should be either “Number” and “String”. Idea of this is to allow the
+#    app developer to 
+#    require the user to input a proper value type for the parameter. For example,
+#    if the parameter in the query expects the value to be a number, then we do not
+#    want the user to be able to enter a string, otherwise the queries would error.
+#  * label: A user-friendly short name for a parameter to display in the UI.
+#  * required: Whether the variable is required when installing the app.
+#  * default: The default value for the variable
+#  * helpText: Help text can be used to display a tooltip for the parameter and 
+#    provide users more information on how/why this value will be used.
+#
+# Here is what parameters may look like for the Apache app.
+parameters:
+  - componentType: scope
+    label: ‘Apache Error Log Source’
+    tfVar: errLogScope
+    
+  - componentType: scope
+    label: ‘Apache Access Log Source’
+    tfVar: accessLogScope
+
+  - componentType: custom
+    dataType: String
+    label: ‘Apache Engine Type‘
+    helpText: ‘The engine type of your Apache Instance‘
+    required: False
+    default: ‘v1.0’
+    tfVar: engineType

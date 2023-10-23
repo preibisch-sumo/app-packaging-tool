@@ -1,0 +1,97 @@
+#
+#   FILL ALL THE REQUIRED FIELDS ACCORDINGLY AND REMOVE OPTIONAL FIELDS THAT ARE NOT USED. WHEN YOU'RE DONE,
+#   YOU CAN REMOVE ALL THE COMMENTS IN THIS FILE (THEY WILL BE REMOVED AUTOMATICALLY DURING EXPORT).
+#
+#   NOTE THAT SOME OF THE FIELDS CAN HAVE ONLY PREDEFINED VALUES THAT ARE LISTED IN COMMENTS
+
+# [Required] The version of the manifest schema.
+# Available values: ["1.0", "2.0"]
+schemaVersion: "2.0"
+
+# [Required] Name of the app.
+# App Name should be unique across all apps. App upload will be rejected if the app name
+# is already used by another app. The same name should be used for app registration (creation).
+name: "MyAppName"
+
+# [Required] Version of the app. It has to conform with https://semver.org/
+version: "1.0.0"
+
+
+# [Required] A short description of the app. The description will be shown in the
+# marketplace and app overview page.
+description: >-
+  This is the application description.
+
+# [Required] Author of the app. Sumo Logic, partner, or third-party/community.
+# “name” and “supportUrl” are required, the rest of the fields are optional.
+author:
+  name: "AuthorName"
+  supportUrl: "http://support.example.com"
+  homeUrl: "http://home.example.com"
+  documentationUrl: "http://docs.example.com"
+
+
+# [Optional] A list of attributes for this app. Attributes allow to group apps based
+# on different criteria.
+# Following keys are allowed: category, useCase, collection. All attributes will only have a predefined set of values.
+# “collection” field can only have "OpenTelemetry", "Hosted", "Installed" as possible values.
+# "use case" field can only have "security" and "observability" as possible values.
+# Attributes will be used for badges too.
+attributes:
+  category:
+    - "Category1"
+    - "Category2"
+    - "Category3"
+  useCase:
+    - "security"
+  collection:
+    - "OpenTelemetry"
+
+# [Optional] Different account types this app should be available to.
+# Possible values are: “Free”, “Trial”, “Essentials”, “EnterpriseOps”, “EnterpriseSec”, "EnterpriseSuite"
+# If not specified, the app is available to all account types.
+accountTypes:
+  - "AccountType1"
+  - "AccountType2"
+  - "AccountType3"
+  - "AccountType4"
+
+# [Required] App overview section gives users a summary of value provided by the app.
+#  * overview: Provides an overview of app, can include things like prerequisites,
+#    screenshots (appMedia will empty in such case).
+#  * setup: Provides instructions for setting up Collection for an app.
+#  * metrics: List of all metrics used by an app.
+#  * troubleshooting: Any troubleshooting that may be relevant for an app.
+# Among all sections, “overview” section is required, the rest of them are optional.
+appOverview:
+  overview: "README.md#Overview"
+  setup: "README.md#Setup"
+  metrics: "README.md#Metrics-Collected"
+  troubleshooting: "README.md#Troubleshooting"
+
+
+# [Optional] App media should include screenshots of different dashboards that are
+# part of the app along with other relevant information.
+appMedia:
+  - title: "MediaTitle1"
+    description: >-
+      MediaDescription1
+    type: "image"
+    location: "./assets/images/preview/Apache-Overview.png"
+  - title: "MediaTitle2"
+    description: >-
+      MediaDescription2
+    type: "Video"
+    location: "http://location2.example.com"
+
+# [Optional] Family provides a mechanism to link different apps.
+family: "AppFamily"
+
+# [Optional] Whether the app is installable. Not all apps are installable.
+# The default value is true for this field.
+installable: true
+
+# [Optional] Whether the app should show up on sumologic.com/applications webpage
+# (https://www.sumologic.com/applications/)
+# The default value is true for this field.
+showOnMarketplace: true
