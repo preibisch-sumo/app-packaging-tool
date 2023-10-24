@@ -1,10 +1,9 @@
-import subprocess
 import platform
-import shutil
+import subprocess
 
 from app.app_content_manager import AppContentManager
-from common import *
-from state import State
+from app.common import *
+from app.state import State
 
 
 class AppManager:

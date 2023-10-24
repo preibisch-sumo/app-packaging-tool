@@ -1,12 +1,7 @@
-# This is a sample Python script.
 import argparse
 
 from app.app_manager import AppManager
-from app.manifest import Manifest
-from common import cleanup_temporary_folders
-# Press ⌃R to execute it or replace it with your code.
-# Press Double ⇧ to search everywhere for classes, files, tool windows, actions, and settings.
-
+from app.common import cleanup_temporary_folders
 
 from gui.main_window import MainWindow
 from app.state import State

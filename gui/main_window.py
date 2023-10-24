@@ -4,7 +4,7 @@ import json
 import os
 from tkinter import filedialog
 
-from common import random_string
+from app.common import random_string
 
 
 class MainWindow(tk.Tk):
