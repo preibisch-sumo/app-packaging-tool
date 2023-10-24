@@ -131,7 +131,7 @@ Copy folder's ID from the URL in your browser:
 Paste the ID into the `Import Resources` field in the tool and click the button. This will import all the resources from the folder and generate terraform files for them. 
 They will be placed in the proper directories of your app, conforming to the App structure. 
 This step can take roughly 10 - 15 seconds to complete, depending on the number of content items in the folder.
-When it's done, you will dee `Done importing resources` in the Terminal window that you used to start a tool.
+When it's done, you will see `Done importing resources` in the Terminal window that you used to start a tool.
 
 ![img_9.png](readme_images/img_9.png)
 
