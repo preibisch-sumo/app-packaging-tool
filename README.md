@@ -74,7 +74,7 @@ pip3.8 install -r requirements.txt
 5. Inside the `App Packaging Tool` directory, run the tool and provide terraformer executable path as an argument:
 
 ```console
-mpreibisch@mpreibisch-mac app-packaging-tool % python3.8 main.py --terraformer_path /Users/mpreibisch/git/github/terraformer/sumologic-terraformer
+python3.8 main.py --terraformer_path /Users/mpreibisch/git/github/terraformer/sumologic-terraformer
 ```
 
 If successful, a small window should pop up at the center of your main screen:
