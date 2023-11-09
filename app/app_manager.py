@@ -92,4 +92,76 @@ class AppManager:
         print("Folder successfully compressed.")
         return True
 
+    def register_private_app(self, app_name):
+        url = register_private_app_endpoint(self.state.deployment)
+
+        response = requests.post(
+            url=url,
+            auth=auth(self.state.access_key, self.state.access_id),
+            json={'name': app_name}
+        )
+
+        print(response.json())
+
+        return response.json()['uuid']
+
+    def upload_private_app(self, app_name, app_uuid):
+        print("Uploading private app with uuid: " + app_uuid)
+        url = upload_private_app_endpoint(self.state.deployment, app_uuid)
+        zip_path = app_results_path(app_name) + ".zip"
+        with open(zip_path, 'rb') as file:
+            response = requests.put(
+                url=url,
+                auth=auth(self.state.access_key, self.state.access_id),
+                files={'file': file}
+            )
+
+            if response.ok:
+                job_id = response.json()['jobId']
+            else:
+                print(response.json())
+                return
+
+        status_endpoint = upload_private_app_upload_status_endpoint(self.state.deployment, job_id=job_id)
+        return wait_for_job_completion(
+            lambda: requests.get(status_endpoint, auth=auth(self.state.access_key, self.state.access_id)),
+            success_status="success",
+            failure_status="failed",
+            polling_interval=1,
+            timeout=180
+        )
+
+    def delete_private_app(self, app_uuid):
+        print("Deleting private app with uuid: " + app_uuid)
+        url = delete_private_app_endpoint(self.state.deployment, app_uuid)
+        response = requests.delete(
+            url=url,
+            auth=auth(self.state.access_key, self.state.access_id)
+        )
+        print(response.json())
+        job_id = response.json()['jobId']
+
+        status_endpoint = delete_private_app_status_endpoint(self.state.deployment, job_id)
+        wait_for_job_completion(
+            lambda: requests.get(status_endpoint, auth=auth(self.state.access_key, self.state.access_id)),
+            success_status="success",
+            failure_status="failed",
+            polling_interval=1,
+            timeout=180
+        )
+        print("App deleted successfully.")
+
+    def test_app(self):
+        app_name = read_name_from_yaml(manifest_path(self.state.app_work_name))
+
+        # Register
+        uuid = self.register_private_app(self.state.app_work_name)
+
+        # Upload
+
+        is_success, message = self.upload_private_app(app_name, uuid)
+
+        self.delete_private_app(uuid)
+
+        return is_success, message
 

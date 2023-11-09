@@ -1,12 +1,13 @@
 import time
 import zipfile
-from typing import Optional, Union
+from typing import Optional, Union, Tuple
 import re
 import random
 import os
 import shutil
 import string
-
+import time
+from typing import Callable, Any
 import requests
 import yaml
 from requests.auth import HTTPBasicAuth
@@ -46,7 +47,11 @@ def license_path(app_name: str) -> str:
 
 
 def icon_path(app_name: str) -> str:
-    return os.path.join(app_root_path(app_name), "assets", "images", "preview_image.png")
+    return os.path.join(app_root_path(app_name), "assets", "images", "icon.png")
+
+
+def preview_images_path(app_name: str) -> str:
+    return os.path.join(app_root_path(app_name), "assets", "images", "preview")
 
 
 def resolve_base_api_url(deployment: str) -> str:
@@ -79,6 +84,26 @@ def download_screenshot_endpoint(deployment: str) -> str:
 
 def download_screenshot_result_endpoint(deployment: str, job_id: str) -> str:
     return f"{resolve_base_api_url(deployment)}v2/dashboards/reportJobs/{job_id}/result"
+
+
+def register_private_app_endpoint(deployment: str) -> str:
+    return f"{resolve_base_api_url(deployment)}v2/apps/private"
+
+
+def upload_private_app_endpoint(deployment: str, uuid: str) -> str:
+    return f"{resolve_base_api_url(deployment)}v2/apps/private/{uuid}"
+
+
+def upload_private_app_upload_status_endpoint(deployment: str, job_id: str) -> str:
+    return f"{resolve_base_api_url(deployment)}v2/apps/private/upload/{job_id}/status"
+
+
+def delete_private_app_endpoint(deployment: str, uuid: str) -> str:
+    return f"{resolve_base_api_url(deployment)}v2/apps/private/{uuid}"
+
+
+def delete_private_app_status_endpoint(deployment: str, job_id: str) -> str:
+    return f"{resolve_base_api_url(deployment)}v2/apps/private/delete/{job_id}/status"
 
 
 def slugify(text: str, replace_char: str = "-") -> str:
@@ -141,27 +166,39 @@ def read_name_from_yaml(file_path: str) -> Optional[str]:
         return None
 
 
-def wait_for_job_completion(base_url: str, job_id: str, auth, timeout: int = 180) -> None:
+def wait_for_job_completion(
+        get_status: Callable[[], Any],
+        success_status: str = "success",
+        failure_status: str = "failed",
+        polling_interval: int = 1,
+        timeout: int = 180
+) -> Tuple[bool, str]:
+    """
+    Wait for an asynchronous job to complete.
+
+    :param get_status: a callable that fetches the job status
+    :param success_status: the status string that indicates job completion
+    :param failure_status: the status string that indicates job failure
+    :param polling_interval: how often to poll for the job status (in seconds)
+    :param timeout: how long to wait for the job to complete before timing out (in seconds)
+    """
     start_time = time.time()
     while True:
         if time.time() - start_time > timeout:
-            raise Exception(f"Job timed out.")
+            raise Exception("Job timed out.")
 
-        status_endpoint = f"{base_url}/{job_id}/status"
-        response = None
         try:
-            response = requests.get(url=status_endpoint, auth=auth)
-            status = response.json()["status"]
+            response = get_status()
+            status = response.json()["status"].lower()
 
-            if status.lower() == "success":
-                break
-            elif status.lower() == "failed":
-                raise Exception(f"Job encountered an error {response.content}")
+            if status == success_status:
+                return True, "success"
+            elif status == failure_status:
+                return False, response.json().get('error', {}).get('message', 'No message')
 
-            time.sleep(1)
+            time.sleep(polling_interval)
         except Exception as e:
-            raise Exception(
-                f"Job {job_id} encountered an error {e} response: {response.content if response else response}")
+            raise Exception(f"Encountered an error while waiting for job completion: {e}")
 
 
 def cleanup_temporary_folders():

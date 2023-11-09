@@ -1,11 +1,9 @@
 import json
 import subprocess
 import textwrap
-import time
 import traceback
-from typing import Dict, Any, List
+from typing import Dict, List
 
-import requests
 from PIL import Image
 
 from app.common import *
@@ -61,7 +59,7 @@ class AppContentManager:
             with open(output_path_tf_path, 'w', encoding='utf-8') as file:
                 file.write(output_tf_text)
 
-        # self.download_screenshots(app_folder_id)
+        self.download_screenshots(app_folder_id)
 
     def filter_dashboards(self, content_list: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         return [item for item in content_list if item['itemType'] == 'Dashboard']
@@ -497,8 +495,12 @@ class AppContentManager:
                 downloaded_screenshot_image_path = os.path.join(screenshot_folder_path, dashboard_screenshot_image_name)
                 cropped_screenshot_image_path = os.path.join(cropped_screenshot_folder_path,
                                                              dashboard_screenshot_image_name)
+                preview_images_screenshot_path = os.path.join(preview_images_path(self.state.app_work_name), dashboard_screenshot_image_name)
                 self.take_dashboard_screenshot(dashboard['id'], variables, downloaded_screenshot_image_path)
-                self.crop_dashboard_screenshot(downloaded_screenshot_image_path, cropped_screenshot_image_path)
+                self.crop_dashboard_screenshot(downloaded_screenshot_image_path, preview_images_screenshot_path)
+                self.add_screenshot_reference_to_manifest(dashboard, preview_images_screenshot_path,
+                                                          manifest_path(self.state.app_work_name))
+
         except Exception as e:
             print(f"Error occurred in downloading screenshots. Error: {e} Traceback: {traceback.format_exc()}")
 
@@ -537,8 +539,15 @@ class AppContentManager:
 
         if response.ok:
             job_id = json.loads(response.content)['id']
+            status_endpoint = f"{download_endpoint}/{job_id}/status"
 
-            wait_for_job_completion(download_endpoint, job_id, auth(self.state.access_key, self.state.access_id))
+            wait_for_job_completion(
+                get_status=lambda: requests.get(url=status_endpoint, auth=auth(self.state.access_key, self.state.access_id)),
+                success_status="success",
+                failure_status="failed",
+                polling_interval=1,
+                timeout=180
+            )
 
             # downloading actual raw image file
             download_result_endpoint = f"{download_endpoint}/{job_id}/result"
@@ -571,3 +580,50 @@ class AppContentManager:
         (topLeftX, topLeftY, bottomRightX, bottomRightY) = img_copy.getbbox()
         cropped = image.crop((0, 0, bottomRightX, bottomRightY))
         cropped.save(target_imagepath)
+
+    def add_screenshot_reference_to_manifest(self, dashboard_data, screenshot_path, manifest_path):
+        # Convert the screenshot path to a relative path
+        relative_path = os.path.relpath(screenshot_path, start=os.path.dirname(manifest_path))
+        relative_path = relative_path.replace('\\', '/')  # Convert to forward slashes for consistency
+        if not relative_path.startswith('.'):
+            relative_path = f"./{relative_path}"
+
+        # Prepare the new appMedia entry with proper quoting and indentation
+        new_media_entry = (
+            f'  - title: "{dashboard_data["title"]}"\n'
+            f'    description: "{dashboard_data["description"]}"\n'
+            f'    type: "image"\n'
+            f'    location: "{relative_path}"\n'
+        )
+
+        # Read in the file
+        with open(manifest_path, 'r') as file:
+            lines = file.readlines()
+
+        # Locate the appMedia list and the insertion point
+        app_media_index = None
+        for i, line in enumerate(lines):
+            if line.strip() == 'appMedia:':
+                app_media_index = i
+                break
+
+        # If appMedia field not found, raise an error
+        if app_media_index is None:
+            raise ValueError("appMedia field not found in the manifest.")
+
+        # Find the end of the appMedia list
+        insert_index = app_media_index + 1
+        while insert_index < len(lines):
+            if lines[insert_index].strip().startswith('- title:'):
+                insert_index += 1
+            elif lines[insert_index].strip() == '':
+                break
+            else:
+                insert_index += 1
+
+        # Insert the new media entry at the correct index
+        lines.insert(insert_index, new_media_entry)
+
+        # Write everything back to the file
+        with open(manifest_path, 'w') as file:
+            file.writelines(lines)

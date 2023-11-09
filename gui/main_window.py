@@ -2,7 +2,7 @@ import tkinter as tk
 import tkinter.ttk as ttk
 import json
 import os
-from tkinter import filedialog
+from tkinter import filedialog, messagebox
 
 from app.common import random_string
 
@@ -84,9 +84,14 @@ class MainWindow(tk.Tk):
                                                 command=self.save_and_export, height=3, width=20)
         self.save_and_export_button.grid(row=8, column=0, sticky='nsew')
 
+        self.test_app_button = tk.Button(self.create_app_frame, text="Test App", command=self.test_app,
+                                         state=tk.DISABLED)
+        self.test_app_button.grid(row=6, column=0)
+
         # Add "Back to Main" button
         self.back_to_main_button = tk.Button(self.create_app_frame, text="Back to Main", command=self.show_main_frame)
         self.back_to_main_button.grid(row=9, column=0, sticky='nsew')
+
 
     def initialize_login_frame(self):
         # Create the login view (hidden by default)
@@ -119,7 +124,7 @@ class MainWindow(tk.Tk):
         self.deployment_label.grid(row=6, column=0)
         self.deployment_var = tk.StringVar(self.login_frame)
         self.deployment_var.set("stag")  # default value
-        self.deployment_option = tk.OptionMenu(self.login_frame, self.deployment_var, "stag", "long", "prods")
+        self.deployment_option = tk.OptionMenu(self.login_frame, self.deployment_var, "stag", "long", "us1", "us2", "dub", "syd", "tky", "mon", "mum", "fed")
         self.deployment_option.grid(row=7, column=0)
 
         self.save_button = tk.Button(self.login_frame, text="Save", command=self.save_account)
@@ -148,6 +153,7 @@ class MainWindow(tk.Tk):
                 self.access_key_entry.insert(0, account['access_key'])
                 self.access_id_entry.delete(0, 'end')
                 self.access_id_entry.insert(0, account['access_id'])
+                self.deployment_var.set(account['deployment'])
                 break
 
     def initialize_frames(self):
@@ -165,6 +171,7 @@ class MainWindow(tk.Tk):
         self.main_frame.grid_remove()
         self.create_app_frame.grid()
         self.state.app_work_name = f"new_app_{random_string(6)}"
+        print(f"Creating new app: {self.state.app_work_name}")
         self.app_manager.create_new_app_package(self.state.app_work_name)
 
     def show_main_frame(self):
@@ -248,5 +255,13 @@ class MainWindow(tk.Tk):
 
     def save_and_export(self):
         self.app_manager.save_and_export()
+        self.test_app_button['state'] = tk.NORMAL
 
+    def test_app(self):
+        result = self.app_manager.test_app()
+        success, message = result if isinstance(result, tuple) else (False, "Unknown error")
 
+        if success:
+            messagebox.showinfo("Test Result", message)
+        else:
+            messagebox.showerror("Test Result", message)

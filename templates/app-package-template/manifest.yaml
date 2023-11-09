@@ -84,6 +84,7 @@ appMedia:
     type: "Video"
     location: "http://location2.example.com"
 
+
 # [Optional] Family provides a mechanism to link different apps.
 family: "AppFamily"
 
